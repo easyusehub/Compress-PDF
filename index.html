@@ -3,73 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online. Browser-only free for small PDFs, API for large PDFs.">
-<title>Compress PDFS – Free & Unlimited</title>
-
+<title>Compress PDF – Free & Professional</title>
 <style>
 body { font-family: Arial,sans-serif; background:#0f0f0f; color:#fff; margin:0; text-align:center; }
 .container { max-width:900px; margin:30px auto; padding:20px; }
 .logo img { max-width:220px; margin:0 auto 25px auto; display:block; opacity:0.95; }
 h1 { font-size:32px; margin-bottom:15px; }
-p { font-size:18px; color:#e5e5e5; line-height:1.6; margin-bottom:35px; }
+p { font-size:18px; color:#fff; line-height:1.6; margin-bottom:35px; background: rgba(0,0,0,0.3); padding:12px; border-radius:6px; }
 .tool-btn { display:block; width:100%; padding:20px 0; margin:15px 0; font-size:18px; font-weight:bold; text-decoration:none; color:#fff; background:#16a34a; border:2px solid #fff; border-radius:6px; transition:0.3s; cursor:pointer; }
 .tool-btn:hover { opacity:0.9; }
-.ad-placeholder { border:2px dashed #555; padding:20px; margin:25px 0; color:#aaa; font-size:14px; text-align:center; border-radius:6px; }
 .home-btn { display:inline-block; margin-top:30px; padding:12px 25px; background: transparent; color:#fff; text-decoration:none; border:2px solid #fff; border-radius:6px; font-size:16px; font-weight:bold; transition:0.3s; }
 .home-btn:hover { background:#16a34a; border-color:#16a34a; color:#fff; }
+input[type="file"]{margin-top:20px;}
 @media (max-width:768px){ h1 { font-size:28px; } p { font-size:16px; } .tool-btn { font-size:16px; padding:15px 0; } }
 </style>
 </head>
 <body>
-
 <div class="container">
-
-  <!-- Logo -->
   <div class="logo">
     <img src="https://i.ibb.co/fYHS4WmF/file-0000000031a471f89cb536e7c16bcf16.png" alt="Compress PDF Logo">
   </div>
 
-  <!-- Page Title -->
   <h1>Compress PDFs Online</h1>
-  <p>
-Our PDF Compression Tool lets you reduce file size effortlessly. Optimize small PDFs directly in your browser, or use our API-powered service for larger files. Fast, secure, and compatible with all devices. Experience hassle-free PDF compression—free for small files, efficient for larger documents.
-  </p>
-  <!-- Top Ad Placeholder -->
-  <div class="ad-placeholder">AdSense Ad Placeholder (Top)</div>
 
-  <!-- File Input -->
+  <p>
+    Reduce your PDF file sizes quickly and securely. Browser-based compression for small files, API-powered compression for large files. Works on all devices. Free for small PDFs.
+  </p>
+
   <input type="file" id="pdfCompressFiles" accept="application/pdf" multiple>
   <button class="tool-btn" onclick="compressPDF()">🗜️ Compress PDF</button>
 
-  <!-- Result / Status -->
   <div id="compressResult" style="margin-top:20px; color:#fff;"></div>
 
-  <!-- Bottom Ad Placeholder -->
-  <div class="ad-placeholder">AdSense Ad Placeholder (Bottom)</div>
-
-  <!-- Back Home Button -->
   <a class="home-btn" href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">🏠 Back to PDF Tools</a>
-
 </div>
 
-<!-- PDF-Lib Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-
 <script>
 async function compressPDF() {
   const files = document.getElementById('pdfCompressFiles').files;
-  if(files.length === 0){
-    alert("Please select at least one PDF file");
-    return;
-  }
+  if(files.length === 0){ alert("Please select at least one PDF file"); return; }
 
-  const maxBrowserSize = 12 * 1024 * 1024; // 12 MB
+  const maxBrowserSize = 12 * 1024 * 1024;
   const resultDiv = document.getElementById('compressResult');
   resultDiv.innerText = "⏳ Compressing...";
 
   for(const file of files){
     if(file.size <= maxBrowserSize){
-      // Browser-only compression
       try {
         const arrayBuffer = await file.arrayBuffer();
         const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
@@ -79,14 +59,13 @@ async function compressPDF() {
         link.href = URL.createObjectURL(blob);
         link.download = file.name.replace(".pdf","-compressed.pdf");
         link.click();
-        resultDiv.innerText = `✅ ${file.name} compressed in browser (≤12 MB).`;
+        resultDiv.innerText = `✅ ${file.name} compressed in browser.`;
       } catch(err){
         resultDiv.innerText = `❌ Error compressing ${file.name}: ${err.message}`;
       }
     } else {
-      // Large PDF → API compression
       try {
-        const fileUrl = await uploadPDFtoTempURL(file); // implement separately
+        const fileUrl = await uploadPDFtoTempURL(file);
         const response = await fetch('/.netlify/functions/compress', {
           method:'POST',
           body: JSON.stringify({ fileUrl }),
@@ -105,15 +84,9 @@ async function compressPDF() {
   }
 }
 
-// Placeholder: implement your own function to upload large PDFs to a URL
 async function uploadPDFtoTempURL(file){
-  // You need a storage server or S3/Netlify Large Media
-  // For demo, returning a dummy URL
   return "https://example.com/your-uploaded-file.pdf";
 }
 </script>
-
 </body>
 </html>
-
-
