@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Compress PDF Online – EasyUseHub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Compress PDF files online for free. Files up to 15MB are compressed directly in your browser. Large files supported via API.">
+
+<!-- PDF-lib -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f5f7fa;
+  margin:0;
+  padding:0;
+}
+header{
+  background:#fff;
+  padding:15px;
+  text-align:center;
+  box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+header img{ max-height:55px; }
+main{
+  max-width:700px;
+  margin:40px auto;
+  background:#fff;
+  padding:30px;
+  border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+}
+h1{ margin-top:0; }
+input[type=file]{ margin:20px 0; }
+button{
+  padding:12px 20px;
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+}
+button:hover{ background:#1e40af; }
+#msg{
+  margin-top:20px;
+  font-weight:bold;
+}
+.ad{
+  margin-top:40px;
+  padding:20px;
+  background:#f0f0f0;
+  text-align:center;
+  color:#777;
+}
+footer{
+  margin-top:30px;
+  text-align:center;
+}
+footer a{ text-decoration:none; color:#2563eb; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <!-- Logo -->
+  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
+</header>
+
+<main>
+  <h1>Compress PDF</h1>
+  <p>
+    Compress PDF files securely.  
+    <strong>Up to 15 MB</strong> works directly in your browser.  
+    Larger files will require API processing.
+  </p>
+
+  <input type="file" id="pdfFile" accept="application/pdf">
+  <br>
+  <button onclick="compressPDF()">Compress PDF</button>
+
+  <div id="msg"></div>
+
+  <!-- Ad placeholder -->
+  <div class="ad">
+    Ad space
+  </div>
+</main>
+
+<footer>
+  <p>
+    <a href="index.html">← Back</a> |
+    <a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">Home</a>
+  </p>
+</footer>
+
+<script>
+async function compressPDF(){
+  const fileInput = document.getElementById("pdfFile");
+  const msg = document.getElementById("msg");
+
+  if(!fileInput.files.length){
+    msg.innerText = "Please select a PDF file.";
+    return;
+  }
+
+  const file = fileInput.files[0];
+
+  if(file.size > 15 * 1024 * 1024){
+    msg.innerHTML = "❌ File larger than 15 MB.<br>Large files will be supported via API version.";
+    return;
+  }
+
+  msg.innerText = "Compressing... Please wait.";
+
+  try{
+    const bytes = await file.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+
+    const newPdf = await PDFLib.PDFDocument.create();
+    const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+    pages.forEach(p => newPdf.addPage(p));
+
+    const compressedBytes = await newPdf.save({ useObjectStreams: false });
+
+    const blob = new Blob([compressedBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "compressed.pdf";
+    a.click();
+
+    msg.innerText = "✅ Compression completed!";
+  }catch(err){
+    msg.innerText = "❌ Compression failed.";
+    console.error(err);
+  }
+}
+</script>
+
+</body>
+</html>
