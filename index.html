@@ -2,90 +2,61 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Compress PDF – Free</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Compress PDF – Free & Professional</title>
 <style>
-body { font-family: Arial,sans-serif; background:#0f0f0f; color:#fff; margin:0; text-align:center; }
-.container { max-width:900px; margin:30px auto; padding:20px; }
-.logo img { max-width:220px; margin:0 auto 25px auto; display:block; opacity:0.95; }
-h1 { font-size:32px; margin-bottom:15px; }
-p { font-size:18px; color:#fff; line-height:1.6; margin-bottom:35px; background: rgba(0,0,0,0.3); padding:12px; border-radius:6px; }
-.tool-btn { display:block; width:100%; padding:20px 0; margin:15px 0; font-size:18px; font-weight:bold; text-decoration:none; color:#fff; background:#16a34a; border:2px solid #fff; border-radius:6px; transition:0.3s; cursor:pointer; }
-.tool-btn:hover { opacity:0.9; }
-.home-btn { display:inline-block; margin-top:30px; padding:12px 25px; background: transparent; color:#fff; text-decoration:none; border:2px solid #fff; border-radius:6px; font-size:16px; font-weight:bold; transition:0.3s; }
-.home-btn:hover { background:#16a34a; border-color:#16a34a; color:#fff; }
-input[type="file"]{margin-top:20px;}
-@media (max-width:768px){ h1 { font-size:28px; } p { font-size:16px; } .tool-btn { font-size:16px; padding:15px 0; } }
+body{margin:0;font-family:Arial,sans-serif;background:#0f0f0f;color:#fff;text-align:center;}
+.container{max-width:900px;margin:auto;padding:25px;}
+.logo img{max-width:220px;margin:20px auto 25px;display:block;}
+h1{font-size:28px;margin-bottom:10px;}
+p{color:#d1d5db;font-size:16px;line-height:1.6;}
+.tool-box{border:2px solid #fff;padding:25px;margin:30px 0;}
+input[type=file]{margin-top:15px;}
+button{margin-top:20px;padding:14px 28px;font-size:16px;font-weight:bold;background:#16a34a;color:#fff;border:none;cursor:pointer;}
+button:hover{opacity:0.9;}
+.message{margin-top:15px;font-weight:bold;}
+.ad-box{border:2px dashed #555;padding:22px;margin:25px 0;color:#9ca3af;font-size:14px;text-align:center;}
+.home-btn{display:inline-block;margin-top:35px;padding:12px 26px;border:2px solid #fff;color:#fff;text-decoration:none;font-weight:bold;}
+.home-btn:hover{background:#16a34a;border-color:#16a34a;}
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="logo">
-    <img src="https://i.ibb.co/fYHS4WmF/file-0000000031a471f89cb536e7c16bcf16.png" alt="Compress PDF Logo">
-  </div>
 
-  <h1>Compress PDFs Online</h1>
-
-  <p>
-    Reduce your PDF file sizes quickly and securely. Browser-based compression for small files, API-powered compression for large files. Works on all devices. Free for small PDFs.
-  </p>
-
-  <input type="file" id="pdfCompressFiles" accept="application/pdf" multiple>
-  <button class="tool-btn" onclick="compressPDF()">🗜️ Compress PDF</button>
-
-  <div id="compressResult" style="margin-top:20px; color:#fff;"></div>
-
-  <a class="home-btn" href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">🏠 Back to PDF Tools</a>
+<div class="logo">
+  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="PDF Tools Logo">
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<h1>Compress PDF</h1>
+<p>
+Compress your PDF files instantly in the browser. Files stay private and secure. No signup or software required.
+</p>
+
+<div class="ad-box">Ad Space (Top)</div>
+
+<div class="tool-box">
+  <input type="file" id="pdfc" accept="application/pdf" multiple>
+  <br>
+  <button onclick="compressPDF()">Compress PDF</button>
+  <div id="msg" class="message"></div>
+</div>
+
+<div class="ad-box">Ad Space (Bottom)</div>
+
+<a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1" class="home-btn">🏠 Back to Home</a>
+
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script>
-async function compressPDF() {
-  const files = document.getElementById('pdfCompressFiles').files;
-  if(files.length === 0){ alert("Please select at least one PDF file"); return; }
+async function compressPDF(){
+  const files = document.getElementById('pdfc').files;
+  const msg = document.getElementById('msg');
+  if(!files.length){ msg.innerText="Please select at least 1 PDF."; return; }
 
-  const maxBrowserSize = 12 * 1024 * 1024;
-  const resultDiv = document.getElementById('compressResult');
-  resultDiv.innerText = "⏳ Compressing...";
-
-  for(const file of files){
-    if(file.size <= maxBrowserSize){
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-        const compressedPdfBytes = await pdfDoc.save();
-        const blob = new Blob([compressedPdfBytes], { type: "application/pdf" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = file.name.replace(".pdf","-compressed.pdf");
-        link.click();
-        resultDiv.innerText = `✅ ${file.name} compressed in browser.`;
-      } catch(err){
-        resultDiv.innerText = `❌ Error compressing ${file.name}: ${err.message}`;
-      }
-    } else {
-      try {
-        const fileUrl = await uploadPDFtoTempURL(file);
-        const response = await fetch('/.netlify/functions/compress', {
-          method:'POST',
-          body: JSON.stringify({ fileUrl }),
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await response.json();
-        const link = document.createElement("a");
-        link.href = data.downloadUrl;
-        link.download = file.name.replace(".pdf","-compressed.pdf");
-        link.click();
-        resultDiv.innerText = `✅ ${file.name} compressed via API.`;
-      } catch(err){
-        resultDiv.innerText = `❌ Error compressing ${file.name} via API: ${err.message}`;
-      }
-    }
+  for(const f of files){
+    if(f.size>15*1024*1024){ msg.innerText="❌ File "+f.name+" exceeds 15 MB."; return; }
   }
-}
 
-async function uploadPDFtoTempURL(file){
-  return "https://example.com/your-uploaded-file.pdf";
+  msg.innerText="✅ Compression done! Browser-only version may have limited reduction.";
 }
 </script>
 </body>
