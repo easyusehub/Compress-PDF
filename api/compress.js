@@ -1,42 +1,51 @@
 import fetch from "node-fetch";
-import FormData from "form-data";
+import formidable from "formidable";
 
-export const config = { api:{ bodyParser:{ sizeLimit:"50mb" } } };
+export const config = {
+  api: { bodyParser: false } // important to handle multipart/form-data
+};
 
 export default async function handler(req,res){
-  if(req.method!=="POST") return res.status(405).json({error:"Method not allowed"});
+  if(req.method!=="POST") return res.status(405).send("Method not allowed");
 
-  try{
-    const apiKey = process.env.ILOVEPDF_PUBLIC_KEY;
-    if(!apiKey) return res.status(500).json({error:"API key not configured"});
+  const form = new formidable.IncomingForm();
+  form.keepExtensions = true;
 
-    const { fileName, file } = req.body;
-    if(!file) return res.status(400).json({error:"No file provided"});
+  form.parse(req, async (err, fields, files) => {
+    if(err) return res.status(500).send(err.message);
+    if(!files.file) return res.status(400).send("No file uploaded");
 
-    const buffer = Buffer.from(file,"base64");
+    const file = files.file;
 
-    const form = new FormData();
-    form.append("file", buffer, { filename: fileName||"input.pdf", contentType:"application/pdf" });
+    try {
+      const apiKey = process.env.ILOVEPDF_PUBLIC_KEY;
+      if(!apiKey) return res.status(500).send("API key not configured");
 
-    // Call iLovePDF compress endpoint
-    const upload = await fetch("https://api.ilovepdf.com/v1/compress",{
-      method:"POST",
-      headers:{Authorization:`Bearer ${apiKey}`},
-      body:form
-    });
+      const formData = new fetch.FormData();
+      formData.append("file", file.filepath ? require("fs").createReadStream(file.filepath) : file);
 
-    const result = await upload.json();
-    if(!upload.ok) return res.status(500).json({error:JSON.stringify(result)});
+      const upload = await fetch("https://api.ilovepdf.com/v1/compress",{
+        method:"POST",
+        headers:{Authorization:`Bearer ${apiKey}`},
+        body: formData
+      });
 
-    // Download compressed PDF
-    const compressedResponse = await fetch(result.output_file.url);
-    const compressedBuffer = await compressedResponse.arrayBuffer();
-    const compressedBase64 = Buffer.from(compressedBuffer).toString("base64");
+      if(!upload.ok) {
+        const text = await upload.text();
+        return res.status(500).send(text);
+      }
 
-    res.status(200).json({ file:compressedBase64 });
+      const result = await upload.json();
+      // Download compressed PDF
+      const compressedResp = await fetch(result.output_file.url);
+      const compressedBuffer = await compressedResp.arrayBuffer();
 
-  } catch(err){
-    console.error(err);
-    res.status(500).json({error:err.message});
-  }
+      res.setHeader("Content-Type","application/pdf");
+      res.send(Buffer.from(compressedBuffer));
+
+    } catch(e){
+      console.error(e);
+      res.status(500).send(e.message);
+    }
+  });
 }
