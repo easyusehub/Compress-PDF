@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Compress PDF – EasyUseHub</title>
+<title>Compress PDF Online – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online. Browser compression for small files, API for large files.">
+<meta name="description" content="Compress PDF files online. Files up to 15MB are compressed directly in your browser. Large files supported via API.">
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <style>
-body{ font-family: Arial,sans-serif; background:#f5f7fa; margin:0; padding:0; text-align:center;}
-header{ background:#fff; padding:15px; box-shadow:0 2px 5px rgba(0,0,0,.1);}
-header img{ max-height:55px;}
-main{ max-width:700px; margin:40px auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.08);}
-h1{ margin-top:0;}
-input[type=file]{ margin:20px 0;}
-button{ padding:12px 20px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:16px;}
-button:hover{ background:#1e40af;}
-#msg{ margin-top:20px; font-weight:bold;}
-#progress-container{width:100%; background:#ddd; height:20px; border-radius:10px; display:none; margin:10px auto;}
-#progress-bar{height:100%; width:0%; background:#2563eb; border-radius:10px;}
-#size-info, #time-info{margin-top:10px; font-weight:bold;}
-footer{margin-top:30px; text-align:center;}
-footer a{ text-decoration:none; color:#2563eb; }
+body { font-family: Arial, sans-serif; background:#f5f7fa; margin:0; padding:0; text-align:center;}
+header { background:#fff; padding:15px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,.1);}
+header img { max-height:55px; }
+main { max-width:700px; margin:40px auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.08);}
+h1 { margin-top:0; }
+input[type=file] { margin:20px 0; }
+button { padding:12px 20px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:16px; }
+button:hover { background:#1e40af; }
+#msg { margin-top:20px; font-weight:bold; }
+.ad { margin-top:40px; padding:20px; background:#f0f0f0; text-align:center; color:#777; }
+footer { margin-top:30px; text-align:center; }
+footer a { text-decoration:none; color:#2563eb; }
 </style>
 </head>
 <body>
@@ -31,119 +29,96 @@ footer a{ text-decoration:none; color:#2563eb; }
 
 <main>
 <h1>Compress PDF</h1>
-<p>Compress PDF files securely. Small files compress in browser, large files use API. See size and progress in real-time.</p>
+<p>Compress PDF files securely. Up to <strong>15 MB</strong> works in browser. Larger files use API.</p>
 
 <input type="file" id="pdfFile" accept="application/pdf"><br>
 <button onclick="compressPDF()">Compress PDF</button>
 
 <div id="msg"></div>
-<div id="progress-container"><div id="progress-bar"></div></div>
-<div id="size-info"></div>
-<div id="time-info"></div>
+<div class="ad">Ad space</div>
+</main>
 
 <footer>
 <p><a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">Home</a></p>
+<p>© EasyUseHub</p>
 </footer>
 
 <script>
 async function compressPDF() {
   const fileInput = document.getElementById("pdfFile");
   const msg = document.getElementById("msg");
-  const progressContainer = document.getElementById("progress-container");
-  const progressBar = document.getElementById("progress-bar");
-  const sizeInfo = document.getElementById("size-info");
-  const timeInfo = document.getElementById("time-info");
 
-  msg.innerText=''; sizeInfo.innerText=''; timeInfo.innerText='';
-  progressBar.style.width='0%'; progressContainer.style.display='none';
-
-  if(!fileInput.files.length){ msg.innerText="Please select a PDF file."; return; }
-  const file = fileInput.files[0];
-
-  const smoothProgress = (start,end,duration)=>{
-    let startTime=performance.now();
-    const animate=(now)=>{
-      let elapsed=now-startTime;
-      let percent=Math.min(start+(end-start)*(elapsed/duration),end);
-      progressBar.style.width=percent+'%';
-      if(percent<end) requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
+  if (!fileInput.files.length) {
+    msg.innerText = "Please select a PDF file.";
+    return;
   }
 
-  const updateTime = remaining=>timeInfo.innerText=`Estimated time left: ${remaining}s`;
+  const file = fileInput.files[0];
 
   // Browser compression for small files
-  if(file.size <= 3*1024*1024){
-    msg.innerText="Compressing in browser...";
-    try{
+  if (file.size <= 15 * 1024 * 1024) {
+    msg.innerText = "Compressing in browser...";
+    try {
       const bytes = await file.arrayBuffer();
       const pdfDoc = await PDFLib.PDFDocument.load(bytes);
       const newPdf = await PDFLib.PDFDocument.create();
-      const pages = pdfDoc.getPages();
-      for(const [index,page] of pages.entries()){
-        const copied = await newPdf.copyPages(pdfDoc,[index]);
-        copied.forEach(p=>newPdf.addPage(p));
-        smoothProgress(0,50,pages.length*100);
-        updateTime(Math.ceil((pages.length-index)/2));
-      }
-      const compressedBytes = await newPdf.save({useObjectStreams:false});
-      if(compressedBytes.byteLength>=file.size){ 
-        msg.innerText="Browser compression minimal, sending to server...";
-        await apiCompress(file);
-      } else {
-        const blob = new Blob([compressedBytes],{type:"application/pdf"});
-        const url = URL.createObjectURL(blob);
-        const a=document.createElement("a"); a.href=url; a.download="compressed.pdf"; a.click();
-        smoothProgress(50,100,500);
-        msg.innerText="✅ Browser compression done!";
-        sizeInfo.innerText=`Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
-        updateTime(0);
-      }
-    } catch(err){console.error(err); msg.innerText="❌ Browser compression failed.";}
-  } else await apiCompress(file);
+      const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      pages.forEach(p => newPdf.addPage(p));
+
+      const compressedBytes = await newPdf.save({ useObjectStreams: false });
+      const blob = new Blob([compressedBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "compressed.pdf";
+      a.click();
+
+      msg.innerText = `✅ Browser compression done! Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
+
+    } catch(err){
+      console.error(err);
+      msg.innerText = "❌ Browser compression failed. Sending to server...";
+      await apiCompress(file);
+    }
+  } else {
+    // Use API for large files
+    await apiCompress(file);
+  }
 
   async function apiCompress(file){
-    try{
+    try {
       const arrayBuffer = await file.arrayBuffer();
       const base64File = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      msg.innerText="Uploading to server...";
-      smoothProgress(20,50,1000);
-      updateTime(Math.ceil(file.size/1024/1024));
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST","/api/compress",true);
-      xhr.setRequestHeader("Content-Type","application/json");
+      msg.innerText = "Uploading to server...";
+      const res = await fetch("/api/compress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file: base64File })
+      });
 
-      xhr.upload.onprogress = event=>{
-        if(event.lengthComputable){
-          const percent = 20+(event.loaded/event.total*30);
-          smoothProgress(progressBar.style.width.replace('%',''),percent,200);
-          updateTime(Math.ceil((event.total-event.loaded)/1024/1024));
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        msg.innerText = data.error ? (typeof data.error === 'string' ? data.error : JSON.stringify(data.error)) : "Upload failed.";
+        return;
       }
 
-      xhr.onreadystatechange = ()=>{
-        if(xhr.readyState===XMLHttpRequest.DONE){
-          if(xhr.status===200){
-            const data = JSON.parse(xhr.responseText);
-            const binary = atob(data.file);
-            const bytes = new Uint8Array(binary.length);
-            for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-            const blob = new Blob([bytes],{type:"application/pdf"});
-            const url = URL.createObjectURL(blob);
-            const a=document.createElement("a"); a.href=url; a.download="compressed.pdf"; a.click();
-            smoothProgress(50,100,800);
-            msg.innerText="✅ API compression done!";
-            sizeInfo.innerText=`Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
-            updateTime(0);
-          } else msg.innerText=`❌ API Error: ${JSON.parse(xhr.responseText).error||"Unknown"}`;
-        }
-      }
+      const binary = atob(data.file);
+      const bytes = new Uint8Array(binary.length);
+      for(let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "compressed.pdf";
+      a.click();
 
-      xhr.send(JSON.stringify({file:base64File}));
+      msg.innerText = `✅ API compression done! Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
 
-    } catch(err){ console.error(err); msg.innerText="❌ Upload failed.";}
+    } catch(err){
+      console.error(err);
+      msg.innerText = "❌ Upload failed.";
+    }
   }
 }
 </script>
