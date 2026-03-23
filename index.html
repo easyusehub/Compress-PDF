@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online via API. Upload any PDF and get a compressed version.">
+<meta name="description" content="Compress PDF files online using API. Upload any PDF and download compressed version.">
 <style>
 body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:0;text-align:center;}
 header{background:#fff;padding:15px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.1);}
@@ -27,7 +27,7 @@ footer a{text-decoration:none;color:#2563eb;}
 
 <main>
 <h1>Compress PDF</h1>
-<p>Upload any PDF and get a compressed version using our API.</p>
+<p>Upload any PDF and get a compressed version via API.</p>
 
 <input type="file" id="pdfFile" accept="application/pdf"><br>
 <button onclick="compressPDF()">Compress PDF</button>
@@ -41,38 +41,37 @@ footer a{text-decoration:none;color:#2563eb;}
 </footer>
 
 <script>
-async function compressPDF() {
-  const fileInput = document.getElementById("pdfFile");
-  const msg = document.getElementById("msg");
+async function compressPDF(){
+  const fileInput=document.getElementById("pdfFile");
+  const msg=document.getElementById("msg");
 
   if(!fileInput.files.length){ msg.innerText="Please select a PDF file."; return; }
 
-  const file = fileInput.files[0];
-  msg.innerText = "Uploading to server...";
+  const file=fileInput.files[0];
+  msg.innerText="Uploading to server...";
 
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
+  try{
+    const formData=new FormData();
+    formData.append("file",file);
 
-    const res = await fetch("/api/compress", { method:"POST", body: formData });
+    const res=await fetch("/api/compress",{ method:"POST", body:formData });
     if(!res.ok){
-      const text = await res.text();
-      msg.innerText = `❌ Upload failed: ${text}`;
+      const text=await res.text();
+      msg.innerText=`❌ Upload failed: ${text}`;
       return;
     }
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "compressed.pdf";
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="compressed.pdf";
     a.click();
 
-    msg.innerText = `✅ Compression completed!`;
+    msg.innerText=`✅ Compression completed!`;
 
-  } catch(e){
+  }catch(e){
     console.error(e);
-    msg.innerText = "❌ Upload failed.";
+    msg.innerText="❌ Upload failed.";
   }
 }
 </script>
