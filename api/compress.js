@@ -3,7 +3,7 @@ import FormData from "form-data";
 import formidable from "formidable";
 import fs from "fs";
 
-export const config = { api:{ bodyParser:false } }; // important for multipart/form-data
+export const config = { api:{ bodyParser:false } };
 
 export default async function handler(req,res){
   if(req.method!=="POST") return res.status(405).send("Method not allowed");
@@ -36,14 +36,11 @@ export default async function handler(req,res){
       }
 
       const result=await upload.json();
-
-      // Download compressed PDF
       const compressedResp=await fetch(result.output_file.url);
       const compressedBuffer=await compressedResp.arrayBuffer();
 
       res.setHeader("Content-Type","application/pdf");
       res.send(Buffer.from(compressedBuffer));
-
     }catch(e){
       console.error(e);
       res.status(500).send(e.message);
