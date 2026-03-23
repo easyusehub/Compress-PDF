@@ -2,6 +2,15 @@
 import fetch from "node-fetch";
 import FormData from "form-data";
 
+// Allow bigger JSON uploads
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "50mb", // increase if your PDFs are bigger
+    },
+  },
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -11,7 +20,8 @@ export default async function handler(req, res) {
     const apiKey = process.env.ILOVEPDF_PUBLIC_KEY;
     if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-    // Convert base64 from request to buffer
+    if (!req.body.file) return res.status(400).json({ error: "No file provided" });
+
     const buffer = Buffer.from(req.body.file, "base64");
 
     // Upload PDF to iLovePDF
@@ -23,8 +33,9 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${apiKey}` },
       body: form
     });
+
     const uploadData = await uploadRes.json();
-    if (!uploadRes.ok) return res.status(500).json(uploadData);
+    if (!uploadRes.ok) return res.status(500).json({ error: uploadData.error || "Upload failed" });
 
     // Compress using iLovePDF API
     const compressRes = await fetch("https://api.ilovepdf.com/v1/compress", {
@@ -35,22 +46,22 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({ task_id: uploadData.task.id })
     });
+
     const compressData = await compressRes.json();
-    if (!compressRes.ok) return res.status(500).json(compressData);
+    if (!compressRes.ok) return res.status(500).json({ error: compressData.error || "Compression failed" });
 
     // Download compressed file
     const fileFetch = await fetch(compressData.download.url);
     const compressedBuffer = await fileFetch.arrayBuffer();
     const compressedBase64 = Buffer.from(compressedBuffer).toString("base64");
 
-    // Return compressed PDF in base64
     res.status(200).json({
       message: "PDF compressed successfully",
       file: compressedBase64
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("Compress API error:", err);
+    res.status(500).json({ error: err.message || "Unknown server error" });
   }
 }
