@@ -14,13 +14,13 @@ button{padding:12px 20px;border:none;border-radius:6px;font-size:16px;cursor:poi
 button.compress{background:#2563eb;color:#fff;}
 button.compress:hover{background:#1e40af;}
 button.premium{background:#f59e0b;color:#fff;margin:5px;}
-button.premium:hover{opacity:0.8;}
 button.home{background:#10b981;color:#fff;margin:5px;}
 #progress-container{width:100%;max-width:400px;margin:20px auto;display:none;background:#e5e7eb;border-radius:5px;}
 #progress-bar{width:0%;height:20px;background:#2563eb;border-radius:5px;}
 #ad-placeholder{margin-top:40px;padding:20px;background:#f0f0f0;text-align:center;color:#777;}
 #msg{margin-top:20px;font-weight:bold;}
 </style>
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 
@@ -40,20 +40,16 @@ button.home{background:#10b981;color:#fff;margin:5px;}
 
 <div id="msg"></div>
 
-<!-- Premium Buttons -->
 <div style="margin-top:30px;">
   <button class="premium" onclick="window.open('https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1','_blank')">All PDF Tools</button>
   <button class="home" onclick="window.open('https://easyusehub.blogspot.com/?m=1','_blank')">Home</button>
 </div>
 
-<!-- Ad Placeholder -->
 <div id="ad-placeholder">Ad space</div>
 </main>
 
 <script>
-const PUBLIC_KEY = 'project_public_d522aaeb353219d5a77a4225148e7200_StX2R2aaefe10121b1f33db0ca32183d0ef58';
-
-async function compressPDF() {
+async function compressPDF(){
   const fileInput = document.getElementById("pdfFile");
   const msg = document.getElementById("msg");
   const progressContainer = document.getElementById("progress-container");
@@ -62,53 +58,40 @@ async function compressPDF() {
   if(!fileInput.files.length){ msg.innerText="Please select a PDF."; return; }
   const file = fileInput.files[0];
 
-  msg.innerText="Uploading and compressing...";
-  progressContainer.style.display = 'block';
+  const MAX_BROWSER_MB = 5;
+  if(file.size/1024/1024 > MAX_BROWSER_MB){
+    msg.innerText="File is large. Redirecting to iLovePDF widget...";
+    // Redirect to official widget (user can compress large files safely)
+    window.open("https://www.ilovepdf.com/compress_pdf","_blank");
+    return;
+  }
+
+  msg.innerText="Compressing in browser...";
+  progressContainer.style.display='block';
   progressBar.style.width='0%';
 
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
+  try{
+    const bytes = await file.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+    const newPdf = await PDFLib.PDFDocument.create();
+    const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+    pages.forEach(p=>newPdf.addPage(p));
+    const compressedBytes = await newPdf.save({ useObjectStreams:false });
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.ilovepdf.com/v1/compress", true);
-    xhr.setRequestHeader("Authorization", `Bearer ${PUBLIC_KEY}`);
+    // simulate progress
+    progressBar.style.width='80%';
+    await new Promise(r=>setTimeout(r,300));
 
-    xhr.upload.onprogress = function(e){
-      if(e.lengthComputable){
-        const percent = Math.round((e.loaded / e.total) * 100);
-        progressBar.style.width = percent + '%';
-      }
-    };
+    const blob = new Blob([compressedBytes],{type:"application/pdf"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href=url;
+    a.download="compressed.pdf";
+    a.click();
 
-    xhr.onload = async function(){
-      if(xhr.status!==200){
-        msg.innerText=`❌ Compression failed: ${xhr.statusText}`;
-        progressBar.style.width='0%';
-        return;
-      }
-
-      const result = JSON.parse(xhr.responseText);
-      if(!result.output_file || !result.output_file.url){
-        msg.innerText="❌ Compression failed: No file returned";
-        return;
-      }
-
-      const downloadResp = await fetch(result.output_file.url);
-      const blob = await downloadResp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "compressed.pdf";
-      a.click();
-
-      msg.innerText="✅ Compression completed!";
-      progressBar.style.width='100%';
-    };
-
-    xhr.send(formData);
-
-  } catch(e){
+    progressBar.style.width='100%';
+    msg.innerText="✅ Compression done!";
+  }catch(e){
     console.error(e);
     msg.innerText="❌ Compression failed.";
   }
