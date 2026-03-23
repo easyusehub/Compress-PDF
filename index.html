@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online. Browser compression for small files, API for large files. See original vs compressed size.">
-<!-- PDF-lib for in-browser compression -->
+<meta name="description" content="Compress PDF files online. Browser compression for small files, API for large files.">
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <style>
-body { font-family: Arial,sans-serif; background:#f5f7fa; margin:0; padding:0; text-align:center;}
+body{ font-family: Arial,sans-serif; background:#f5f7fa; margin:0; padding:0; text-align:center;}
 header{ background:#fff; padding:15px; box-shadow:0 2px 5px rgba(0,0,0,.1);}
 header img{ max-height:55px;}
 main{ max-width:700px; margin:40px auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,.08);}
@@ -27,7 +26,7 @@ footer a{ text-decoration:none; color:#2563eb; }
 <body>
 
 <header>
-  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
+<img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
 </header>
 
 <main>
@@ -43,7 +42,7 @@ footer a{ text-decoration:none; color:#2563eb; }
 <div id="time-info"></div>
 
 <footer>
-<p><a href="index.html">← Back</a> | <a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">Home</a></p>
+<p><a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">Home</a></p>
 </footer>
 
 <script>
@@ -101,7 +100,7 @@ async function compressPDF() {
         sizeInfo.innerText=`Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
         updateTime(0);
       }
-    } catch(err){ console.error(err); msg.innerText="❌ Browser compression failed.";}
+    } catch(err){console.error(err); msg.innerText="❌ Browser compression failed.";}
   } else await apiCompress(file);
 
   async function apiCompress(file){
