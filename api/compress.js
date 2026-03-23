@@ -2,11 +2,11 @@
 import fetch from "node-fetch";
 import FormData from "form-data";
 
-// Allow bigger JSON uploads
+// ✅ Allow large JSON uploads (up to 50 MB)
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: "50mb", // increase if your PDFs are bigger
+      sizeLimit: "50mb",
     },
   },
 };
@@ -31,24 +31,30 @@ export default async function handler(req, res) {
     const uploadRes = await fetch("https://api.ilovepdf.com/v1/upload", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },
-      body: form
+      body: form,
     });
 
     const uploadData = await uploadRes.json();
-    if (!uploadRes.ok) return res.status(500).json({ error: uploadData.error || "Upload failed" });
+    if (!uploadRes.ok) {
+      console.error("Upload failed:", uploadData);
+      return res.status(500).json({ error: uploadData.error || "Upload failed" });
+    }
 
     // Compress using iLovePDF API
     const compressRes = await fetch("https://api.ilovepdf.com/v1/compress", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ task_id: uploadData.task.id })
+      body: JSON.stringify({ task_id: uploadData.task.id }),
     });
 
     const compressData = await compressRes.json();
-    if (!compressRes.ok) return res.status(500).json({ error: compressData.error || "Compression failed" });
+    if (!compressRes.ok) {
+      console.error("Compression failed:", compressData);
+      return res.status(500).json({ error: compressData.error || "Compression failed" });
+    }
 
     // Download compressed file
     const fileFetch = await fetch(compressData.download.url);
@@ -57,11 +63,11 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       message: "PDF compressed successfully",
-      file: compressedBase64
+      file: compressedBase64,
     });
 
   } catch (err) {
-    console.error("Compress API error:", err);
+    console.error("API error:", err);
     res.status(500).json({ error: err.message || "Unknown server error" });
   }
 }
