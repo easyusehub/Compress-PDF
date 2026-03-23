@@ -4,77 +4,67 @@
 <meta charset="UTF-8">
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online using API. Upload any PDF and download compressed version.">
 <style>
-body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:0;text-align:center;}
-header{background:#fff;padding:15px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.1);}
-header img{max-height:55px;}
+body{font-family:Arial,sans-serif;background:#f5f7fa;text-align:center;margin:0;padding:0;}
 main{max-width:700px;margin:40px auto;background:#fff;padding:30px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);}
-h1{margin-top:0;}
 input[type=file]{margin:20px 0;}
 button{padding:12px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:16px;}
 button:hover{background:#1e40af;}
 #msg{margin-top:20px;font-weight:bold;}
-footer{margin-top:30px;text-align:center;}
-footer a{text-decoration:none;color:#2563eb;}
 </style>
 </head>
 <body>
-
-<header>
-<img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
-</header>
-
 <main>
 <h1>Compress PDF</h1>
-<p>Upload any PDF and get a compressed version via API.</p>
-
 <input type="file" id="pdfFile" accept="application/pdf"><br>
 <button onclick="compressPDF()">Compress PDF</button>
-
 <div id="msg"></div>
 </main>
-
-<footer>
-<p><a href="https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1">Home</a></p>
-<p>© EasyUseHub</p>
-</footer>
 
 <script>
 async function compressPDF(){
   const fileInput=document.getElementById("pdfFile");
   const msg=document.getElementById("msg");
 
-  if(!fileInput.files.length){ msg.innerText="Please select a PDF file."; return; }
-
+  if(!fileInput.files.length){ msg.innerText="Please select a PDF."; return; }
   const file=fileInput.files[0];
-  msg.innerText="Uploading to server...";
+  msg.innerText="Processing...";
 
-  try{
-    const formData=new FormData();
-    formData.append("file",file);
+  const MAX_SERVER_SIZE=4.5*1024*1024; // 4.5 MB
 
-    const res=await fetch("/api/compress",{ method:"POST", body:formData });
-    if(!res.ok){
-      const text=await res.text();
-      msg.innerText=`❌ Upload failed: ${text}`;
-      return;
-    }
+  if(file.size <= MAX_SERVER_SIZE){
+    try {
+      const formData=new FormData();
+      formData.append("file",file);
+      const res=await fetch("/api/compress",{method:"POST",body:formData});
+      if(!res.ok){ msg.innerText=`❌ Server failed: ${await res.text()}`; return; }
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url; a.download="compressed.pdf";
+      a.click();
+      msg.innerText="✅ Compression done via server!";
+    } catch(e){ console.error(e); msg.innerText="❌ Server upload failed."; }
+  } else {
+    try {
+      msg.innerText="Large file detected. Uploading directly to iLovePDF...";
+      const formData=new FormData();
+      formData.append("file",file);
 
-    const blob=await res.blob();
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url; a.download="compressed.pdf";
-    a.click();
+      const res=await fetch("https://api.ilovepdf.com/v1/compress",{method:"POST", headers:{Authorization:`Bearer project_public_d522aaeb3532`}, body:formData});
+      if(!res.ok){ msg.innerText=`❌ iLovePDF failed: ${await res.text()}`; return; }
 
-    msg.innerText=`✅ Compression completed!`;
-
-  }catch(e){
-    console.error(e);
-    msg.innerText="❌ Upload failed.";
+      const result=await res.json();
+      const downloadResp=await fetch(result.output_file.url);
+      const blob=await downloadResp.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url; a.download="compressed.pdf";
+      a.click();
+      msg.innerText="✅ Compression done via iLovePDF!";
+    } catch(e){ console.error(e); msg.innerText="❌ Direct API upload failed."; }
   }
 }
 </script>
-
 </body>
 </html>
