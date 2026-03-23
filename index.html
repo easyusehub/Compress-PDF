@@ -4,42 +4,54 @@
 <meta charset="UTF-8">
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:0;text-align:center;}
+header{background:#fff;padding:15px;box-shadow:0 2px 5px rgba(0,0,0,.1);}
+header img{height:60px;}
+main{max-width:700px;margin:40px auto;background:#fff;padding:30px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);}
+input[type=file]{margin:20px 0;}
+button{padding:12px 20px;border:none;border-radius:6px;font-size:16px;cursor:pointer;}
+button.compress{background:#2563eb;color:#fff;}
+button.compress:hover{background:#1e40af;}
+button.premium{background:#f59e0b;color:#fff;margin:5px;}
+button.premium:hover{opacity:0.8;}
+button.home{background:#10b981;color:#fff;margin:5px;}
+#progress-container{width:100%;max-width:400px;margin:20px auto;display:none;background:#e5e7eb;border-radius:5px;}
+#progress-bar{width:0%;height:20px;background:#2563eb;border-radius:5px;}
+#ad-placeholder{margin-top:40px;padding:20px;background:#f0f0f0;text-align:center;color:#777;}
+#msg{margin-top:20px;font-weight:bold;}
+</style>
 </head>
 <body>
 
 <header>
-  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo" style="height:60px;">
+  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
 </header>
 
 <main>
-  <h1>Compress PDF</h1>
-  
-  <input type="file" id="pdfFile" accept="application/pdf"><br>
-  <button onclick="compressPDF()">Compress PDF</button>
-  
-  <div id="progress-container" style="width:100%; max-width:400px; margin:20px auto; display:none;">
-    <div id="progress-bar" style="width:0%; height:20px; background:#2563eb; border-radius:5px;"></div>
-  </div>
-  
-  <div id="msg" style="margin-top:20px; font-weight:bold;"></div>
-  
-  <!-- Buttons for all PDF tools -->
-  <div style="margin-top:30px;">
-    <button onclick="location.href='repair.html'">Repair PDF</button>
-    <button onclick="location.href='compare.html'">Compare PDF</button>
-    <button onclick="location.href='html2pdf.html'">HTML → PDF</button>
-    <button onclick="location.href='index.html'">Home</button>
-  </div>
-  
-  <!-- Ad placeholder -->
-  <div style="margin-top:40px; padding:20px; background:#f0f0f0; text-align:center; color:#777;">
-    Ad space
-  </div>
+<h1>Compress PDF</h1>
+
+<input type="file" id="pdfFile" accept="application/pdf"><br>
+<button class="compress" onclick="compressPDF()">Compress PDF</button>
+
+<div id="progress-container">
+  <div id="progress-bar"></div>
+</div>
+
+<div id="msg"></div>
+
+<!-- Premium Buttons -->
+<div style="margin-top:30px;">
+  <button class="premium" onclick="window.open('https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1','_blank')">All PDF Tools</button>
+  <button class="home" onclick="window.open('https://easyusehub.blogspot.com/?m=1','_blank')">Home</button>
+</div>
+
+<!-- Ad Placeholder -->
+<div id="ad-placeholder">Ad space</div>
 </main>
 
 <script>
-const ILOVEPDF_PUBLIC_KEY = 'project_public_01be3ee3fe2e1e9f38eb5010469a1a48_L2eVu78694d19a2f8d38e5446ac2d25fdc215'; // Your iLovePDF public key
+const PUBLIC_KEY = 'project_public_d522aaeb353219d5a77a4225148e7200_StX2R2aaefe10121b1f33db0ca32183d0ef58';
 
 async function compressPDF() {
   const fileInput = document.getElementById("pdfFile");
@@ -47,12 +59,12 @@ async function compressPDF() {
   const progressContainer = document.getElementById("progress-container");
   const progressBar = document.getElementById("progress-bar");
 
-  if (!fileInput.files.length) { msg.innerText = "Please select a PDF."; return; }
+  if(!fileInput.files.length){ msg.innerText="Please select a PDF."; return; }
   const file = fileInput.files[0];
-  msg.innerText = "Uploading and compressing...";
 
+  msg.innerText="Uploading and compressing...";
   progressContainer.style.display = 'block';
-  progressBar.style.width = '0%';
+  progressBar.style.width='0%';
 
   try {
     const formData = new FormData();
@@ -62,27 +74,26 @@ async function compressPDF() {
     xhr.open("POST", "https://api.ilovepdf.com/v1/compress", true);
     xhr.setRequestHeader("Authorization", `Bearer ${PUBLIC_KEY}`);
 
-    xhr.upload.onprogress = function(e) {
-      if (e.lengthComputable) {
+    xhr.upload.onprogress = function(e){
+      if(e.lengthComputable){
         const percent = Math.round((e.loaded / e.total) * 100);
         progressBar.style.width = percent + '%';
       }
     };
 
-    xhr.onload = async function() {
-      if (xhr.status !== 200) {
-        msg.innerText = `❌ Compression failed: ${xhr.statusText}`;
-        progressBar.style.width = '0%';
+    xhr.onload = async function(){
+      if(xhr.status!==200){
+        msg.innerText=`❌ Compression failed: ${xhr.statusText}`;
+        progressBar.style.width='0%';
         return;
       }
 
       const result = JSON.parse(xhr.responseText);
-      if (!result.output_file || !result.output_file.url) {
-        msg.innerText = "❌ Compression failed: No file returned";
+      if(!result.output_file || !result.output_file.url){
+        msg.innerText="❌ Compression failed: No file returned";
         return;
       }
 
-      // Download compressed file
       const downloadResp = await fetch(result.output_file.url);
       const blob = await downloadResp.blob();
       const url = URL.createObjectURL(blob);
@@ -91,15 +102,15 @@ async function compressPDF() {
       a.download = "compressed.pdf";
       a.click();
 
-      msg.innerText = "✅ Compression completed!";
-      progressBar.style.width = '100%';
+      msg.innerText="✅ Compression completed!";
+      progressBar.style.width='100%';
     };
 
     xhr.send(formData);
 
-  } catch (e) {
+  } catch(e){
     console.error(e);
-    msg.innerText = "❌ Compression failed.";
+    msg.innerText="❌ Compression failed.";
   }
 }
 </script>
