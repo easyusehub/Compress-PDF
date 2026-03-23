@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compress PDF files online. Small files compress in browser, large files via API.">
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<meta name="description" content="Compress PDF files online via API. Upload any PDF and get a compressed version.">
 <style>
 body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:0;text-align:center;}
 header{background:#fff;padding:15px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.1);}
@@ -28,7 +27,7 @@ footer a{text-decoration:none;color:#2563eb;}
 
 <main>
 <h1>Compress PDF</h1>
-<p>Compress PDF files securely. Small files compress in browser. Larger files use API.</p>
+<p>Upload any PDF and get a compressed version using our API.</p>
 
 <input type="file" id="pdfFile" accept="application/pdf"><br>
 <button onclick="compressPDF()">Compress PDF</button>
@@ -47,61 +46,33 @@ async function compressPDF() {
   const msg = document.getElementById("msg");
 
   if(!fileInput.files.length){ msg.innerText="Please select a PDF file."; return; }
+
   const file = fileInput.files[0];
+  msg.innerText = "Uploading to server...";
 
-  // Browser compression for small files (<3 MB)
-  if(file.size <= 3*1024*1024){
-    msg.innerText="Compressing in browser...";
-    try {
-      const bytes = await file.arrayBuffer();
-      const pdfDoc = await PDFLib.PDFDocument.load(bytes);
-      const newPdf = await PDFLib.PDFDocument.create();
-      const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-      pages.forEach(p=>newPdf.addPage(p));
-      const compressedBytes = await newPdf.save({useObjectStreams:false});
-      const blob = new Blob([compressedBytes],{type:"application/pdf"});
-      const url = URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url; a.download="compressed.pdf"; a.click();
-      msg.innerText=`✅ Browser compression done! Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
-    } catch(err){
-      console.error(err);
-      msg.innerText="❌ Browser compression failed. Sending to server...";
-      await apiCompress(file);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/compress", { method:"POST", body: formData });
+    if(!res.ok){
+      const text = await res.text();
+      msg.innerText = `❌ Upload failed: ${text}`;
+      return;
     }
-  } else {
-    // Large files → send via FormData
-    await apiCompress(file);
-  }
 
-  async function apiCompress(file){
-    try {
-      msg.innerText="Uploading to server...";
-      const formData = new FormData();
-      formData.append("file", file);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "compressed.pdf";
+    a.click();
 
-      const res = await fetch("/api/compress",{
-        method:"POST",
-        body: formData
-      });
+    msg.innerText = `✅ Compression completed!`;
 
-      const blob = await res.blob();
-      if(!res.ok) {
-        const text = await res.text();
-        msg.innerText = `❌ Upload failed: ${text}`;
-        return;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download="compressed.pdf";
-      a.click();
-      msg.innerText=`✅ API compression done! Original: ${(file.size/1024/1024).toFixed(2)} MB | Compressed: ${(blob.size/1024/1024).toFixed(2)} MB`;
-
-    } catch(err){
-      console.error(err);
-      msg.innerText="❌ Upload failed.";
-    }
+  } catch(e){
+    console.error(e);
+    msg.innerText = "❌ Upload failed.";
   }
 }
 </script>
