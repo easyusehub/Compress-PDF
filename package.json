@@ -1,5 +1,6 @@
+
 {
-  "name": "pdf-tools-pro",
+  "name": "pdf-compress-pro",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +10,7 @@
   },
   "dependencies": {
     "node-fetch": "^2.6.9",
-    "formidable": "^2.1.2"
+    "formidable": "^2.1.2",
+    "form-data": "^4.0.0"
   }
 }
