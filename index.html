@@ -5,96 +5,104 @@
 <title>Compress PDF – EasyUseHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{font-family:Arial,sans-serif;background:#f5f7fa;margin:0;padding:0;text-align:center;}
-header{background:#fff;padding:15px;box-shadow:0 2px 5px rgba(0,0,0,.1);}
-header img{height:60px;}
-main{max-width:700px;margin:40px auto;background:#fff;padding:30px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);}
-input[type=file]{margin:20px 0;}
-button{padding:12px 20px;border:none;border-radius:6px;font-size:16px;cursor:pointer;}
-button.compress{background:#2563eb;color:#fff;}
-button.compress:hover{background:#1e40af;}
-button.premium{background:#f59e0b;color:#fff;margin:5px;}
-button.home{background:#10b981;color:#fff;margin:5px;}
-#progress-container{width:100%;max-width:400px;margin:20px auto;display:none;background:#e5e7eb;border-radius:5px;}
-#progress-bar{width:0%;height:20px;background:#2563eb;border-radius:5px;}
-#ad-placeholder{margin-top:40px;padding:20px;background:#f0f0f0;text-align:center;color:#777;}
-#msg{margin-top:20px;font-weight:bold;}
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f5f7fa;
+    text-align:center;
+}
+header{
+    background:#fff;
+    padding:15px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+.container{
+    width:90%;
+    max-width:900px;
+    margin:30px auto;
+}
+#ad-top, #ad-middle{
+    background:#eee;
+    padding:20px;
+    margin:20px 0;
+    border-radius:8px;
+}
+.upload-btn{
+    display:inline-block;
+    padding:15px 30px;
+    background:#2563eb;
+    color:#fff;
+    border-radius:6px;
+    cursor:pointer;
+    margin:20px 0;
+}
+iframe{
+    width:100%;
+    height:600px;
+    border:none;
+    border-radius:8px;
+    margin-top:20px;
+}
+.buttons{
+    margin-top:10px;
+}
+.buttons button{
+    padding:10px 20px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    color:#fff;
+}
+.tools{ background:#10b981; }
+.home{ background:#f59e0b; }
 </style>
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 
 <header>
-  <img src="https://i.ibb.co.com/dJzLMz0v/file-0000000031a471f89cb536e7c16bcf16.png" alt="EasyUseHub Logo">
+<h2>Compress PDF – EasyUseHub</h2>
 </header>
 
-<main>
-<h1>Compress PDF</h1>
+<div class="container">
 
-<input type="file" id="pdfFile" accept="application/pdf"><br>
-<button class="compress" onclick="compressPDF()">Compress PDF</button>
-
-<div id="progress-container">
-  <div id="progress-bar"></div>
+<div id="ad-top">
+<strong>Compress Your PDF</strong> – Reduce PDF file size quickly and securely.
 </div>
 
-<div id="msg"></div>
+<p>Click below to compress your PDF file</p>
 
-<div style="margin-top:30px;">
-  <button class="premium" onclick="window.open('https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1','_blank')">All PDF Tools</button>
-  <button class="home" onclick="window.open('https://easyusehub.blogspot.com/?m=1','_blank')">Home</button>
+<label class="upload-btn" onclick="loadCompressTool()">
+Upload File
+</label>
+
+<!-- iframe container -->
+<div id="iframeArea"></div>
+
+<div id="ad-middle">Middle Ad Placeholder</div>
+
+<!-- All PDF Tools + Home buttons -->
+<div class="buttons">
+<button class="tools" onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1'">
+All PDF Tools
+</button>
+<button class="home" onclick="window.location.href='https://easyusehub.blogspot.com/?m=1'">
+Home
+</button>
 </div>
 
-<div id="ad-placeholder">Ad space</div>
-</main>
+</div>
 
 <script>
-async function compressPDF(){
-  const fileInput = document.getElementById("pdfFile");
-  const msg = document.getElementById("msg");
-  const progressContainer = document.getElementById("progress-container");
-  const progressBar = document.getElementById("progress-bar");
-
-  if(!fileInput.files.length){ msg.innerText="Please select a PDF."; return; }
-  const file = fileInput.files[0];
-
-  const MAX_BROWSER_MB = 5;
-  if(file.size/1024/1024 > MAX_BROWSER_MB){
-    msg.innerText="File is large. Redirecting to iLovePDF widget...";
-    // Redirect to official widget (user can compress large files safely)
-    window.open("https://www.ilovepdf.com/compress_pdf","_blank");
-    return;
-  }
-
-  msg.innerText="Compressing in browser...";
-  progressContainer.style.display='block';
-  progressBar.style.width='0%';
-
-  try{
-    const bytes = await file.arrayBuffer();
-    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
-    const newPdf = await PDFLib.PDFDocument.create();
-    const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-    pages.forEach(p=>newPdf.addPage(p));
-    const compressedBytes = await newPdf.save({ useObjectStreams:false });
-
-    // simulate progress
-    progressBar.style.width='80%';
-    await new Promise(r=>setTimeout(r,300));
-
-    const blob = new Blob([compressedBytes],{type:"application/pdf"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href=url;
-    a.download="compressed.pdf";
-    a.click();
-
-    progressBar.style.width='100%';
-    msg.innerText="✅ Compression done!";
-  }catch(e){
-    console.error(e);
-    msg.innerText="❌ Compression failed.";
-  }
+function loadCompressTool(){
+    const iframeArea = document.getElementById('iframeArea');
+    try {
+        // Try loading PDF24 Compress iframe
+        iframeArea.innerHTML = '<iframe src="https://tools.pdf24.org/en/compress-pdf"></iframe>';
+    } catch(e){
+        // If iframe blocked, redirect automatically
+        window.location.href = "https://tools.pdf24.org/en/compress-pdf";
+    }
 }
 </script>
 
