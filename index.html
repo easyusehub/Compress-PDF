@@ -65,12 +65,15 @@ header{
 
 <p>Click below to compress your PDF file</p>
 
-<label class="upload-btn" onclick="goToCompress()">
+<label class="upload-btn" onclick="loadUnlockWidget()">
 Upload File
 </label>
 
+<div id="widgetArea" style="margin-top:30px;"></div>
+
 <div id="ad-middle">Middle Ad Placeholder</div>
 
+<!-- All PDF Tools + Home buttons BELOW middle ad -->
 <div class="buttons">
 <button class="tools" onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-easyusehub.html?m=1'">
 All PDF Tools
@@ -82,9 +85,17 @@ Home
 
 </div>
 
+<!-- PDF24 official widget -->
+<script src="https://tools.pdf24.org/static/js/widget.js"></script>
 <script>
-function goToCompress(){
-    window.location.href = "https://tools.pdf24.org/en/compress-pdf";
+function loadCompressWidget(){
+    pdf24.loadWidget('compress-pdf', {
+        containerId: 'widgetArea',
+        langCode: 'en',
+        widgetConfig: {
+            theme: 'lightTheme'
+        }
+    });
 }
 </script>
 
