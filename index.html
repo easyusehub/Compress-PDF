@@ -36,13 +36,6 @@ header{
     cursor:pointer;
     margin:20px 0;
 }
-iframe{
-    width:100%;
-    height:600px;
-    border:none;
-    border-radius:8px;
-    margin-top:20px;
-}
 .buttons{
     margin-top:10px;
 }
@@ -72,12 +65,9 @@ iframe{
 
 <p>Click below to compress your PDF file</p>
 
-<label class="upload-btn" onclick="loadCompressTool()">
+<label class="upload-btn" onclick="goToCompress()">
 Upload File
 </label>
-
-<!-- iframe container -->
-<div id="iframeArea"></div>
 
 <div id="ad-middle">Middle Ad Placeholder</div>
 
@@ -94,15 +84,8 @@ Home
 </div>
 
 <script>
-function loadCompressTool(){
-    const iframeArea = document.getElementById('iframeArea');
-    try {
-        // Try loading PDF24 Compress iframe
-        iframeArea.innerHTML = '<iframe src="https://tools.pdf24.org/en/compress-pdf"></iframe>';
-    } catch(e){
-        // If iframe blocked, redirect automatically
-        window.location.href = "https://tools.pdf24.org/en/compress-pdf";
-    }
+function goToCompress(){
+    window.location.href = "https://tools.pdf24.org/en/compress-pdf";
 }
 </script>
 
