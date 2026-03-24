@@ -65,7 +65,7 @@ header{
 
 <p>Click below to compress your PDF file</p>
 
-<label class="upload-btn" onclick="loadUnlockWidget()">
+<label class="upload-btn" onclick="loadCompressWidget()">
 Upload File
 </label>
 
@@ -89,6 +89,11 @@ Home
 <script src="https://tools.pdf24.org/static/js/widget.js"></script>
 <script>
 function loadCompressWidget(){
+    if(typeof pdf24 === "undefined"){
+        alert("Tool loading... Please click again");
+        return;
+    }
+
     pdf24.loadWidget('compress-pdf', {
         containerId: 'widgetArea',
         langCode: 'en',
