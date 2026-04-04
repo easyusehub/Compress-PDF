@@ -10,6 +10,8 @@ body{
     font-family:Arial, sans-serif;
     background:#f5f7fa;
     text-align:center;
+    position: relative;
+    overflow-x: hidden;
 }
 header{
     background:#fff;
@@ -21,12 +23,46 @@ header{
     max-width:900px;
     margin:30px auto;
 }
-#ad-top, #ad-middle{
-    background:#eee;
-    padding:20px;
-    margin:20px 0;
-    border-radius:8px;
+
+/* --- In-Page Push Ad Style --- */
+#push-notification {
+    position: fixed;
+    bottom: -150px; 
+    right: 20px;
+    width: 300px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    z-index: 10000;
+    transition: bottom 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    cursor: pointer;
+    border-left: 5px solid #2563eb;
 }
+#push-notification.active { bottom: 20px; }
+#push-notification img { width: 50px; height: 50px; border-radius: 8px; margin-right: 12px; }
+.push-text { text-align: left; flex: 1; }
+.push-text b { font-size: 14px; color: #222; display: block; }
+.push-text p { font-size: 12px; color: #666; margin: 3px 0 0 0; }
+.close-push { position: absolute; top: 5px; right: 8px; font-size: 18px; color: #aaa; cursor: pointer; }
+
+/* --- Custom Ad Banner Styles --- */
+.custom-ad-bridge {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: white;
+    padding: 25px;
+    margin: 20px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    transition: transform 0.2s;
+}
+.custom-ad-bridge:hover { transform: scale(1.02); }
+.ad-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; display: block; }
+.ad-btn { background: #fbbf24; color: #000; padding: 8px 20px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-top: 10px; }
+
 .upload-btn{
     display:inline-block;
     padding:15px 30px;
@@ -53,14 +89,25 @@ header{
 </head>
 <body>
 
+<div id="push-notification" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
+    <span class="close-push" onclick="event.stopPropagation(); document.getElementById('push-notification').classList.remove('active');">&times;</span>
+    <img src="https://cdn-icons-png.flaticon.com/512/5968/5968313.png" alt="icon">
+    <div class="push-text">
+        <b>🚀 46+ Pro Tools Ready!</b>
+        <p>All PDF TOOLS, All calculators, Image Compressor & AI tools at EasyUseHub.</p>
+    </div>
+</div>
+
 <header>
 <h2>Compress PDF – EasyUseHub</h2>
 </header>
 
 <div class="container">
 
-<div id="ad-top">
-<strong>Compress Your PDF</strong> – Reduce PDF file size quickly and securely.
+<div class="custom-ad-bridge" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
+    <span class="ad-title">🚀 Try 46+ Premium Free Web Tools!</span>
+    <p>All PDF TOOLS, 16+ calculator, Age Calculator, BMI Tracker, Loan EMI etc, Image resize & More - 100% Free</p>
+    <div class="ad-btn">Open EasyUseHub</div>
 </div>
 
 <p>Click below to compress your PDF file</p>
@@ -71,9 +118,18 @@ Upload File
 
 <div id="widgetArea" style="margin-top:30px;"></div>
 
-<div id="ad-middle">Middle Ad Placeholder</div>
+<div class="custom-ad-bridge" style="background: linear-gradient(135deg, #059669, #10b981);" onclick="window.open('https://easyusehub.blogspot.com/p/image-compressor.html', '_blank')">
+    <span class="ad-title">⚡ High-Speed Image Compressor</span>
+    <p>Compress your images without losing quality at EasyUseHub</p>
+    <div class="ad-btn" style="background: #fff;">Try Now</div>
+</div>
 
-<!-- All PDF Tools + Home buttons BELOW middle ad -->
+<div class="custom-ad-bridge" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="window.open('https://easyusehub.blogspot.com/p/ultimate-calculators-hub.html', '_blank')">
+    <span class="ad-title">🔢 Smart Financial & Health Calculators</span>
+    <p>Loan EMI, Age Calculator, BMI Tracker, and Tax Calculators at your fingertips.</p>
+    <div class="ad-btn" style="background: #000; color: #fff;">Open Calculators</div>
+</div>
+
 <div class="buttons">
 <button class="tools" onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-online.html'">
 All PDF Tools
@@ -85,7 +141,6 @@ Home
 
 </div>
 
-<!-- PDF24 official widget -->
 <script src="https://tools.pdf24.org/static/js/widget.js"></script>
 <script>
 function loadCompressWidget(){
@@ -101,6 +156,11 @@ function loadCompressWidget(){
             theme: 'lightTheme'
         }
     });
+
+    // Upload বাটনে ক্লিক করার ১ সেকেন্ড পর ইন-পেজ পুশ অ্যাড স্লাইড করে আসবে
+    setTimeout(function() {
+        document.getElementById('push-notification').classList.add('active');
+    }, 1000);
 }
 </script>
 
